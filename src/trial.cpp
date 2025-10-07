@@ -1,7 +1,5 @@
 #include <opencv2/opencv.hpp>
-#include <opencv2/xphoto/white_balance.hpp>
 #include <iostream>
-#include <set>
 #include <filesystem>
 #include <random>
 #include <vector>
@@ -32,75 +30,6 @@ std::string randomImagePath(const fs::path& root = "images") {
     std::uniform_int_distribution<std::size_t> dist(0, files.size() - 1);
     return files[dist(rng)].string();
 }
-
-// I implemented the basic watershed algorithm on one of the images where both the pills and background
-// have highly saturated colors even though they are clearly contrasting colors. The flow of the algorithm
-// included the following steps: threshold → open → dilate → distance transform → foreground/background/unknown
-// → connected components → watershed → draw boundaries
-
-// int main() {
-//     // Read image
-//     // string path = randomImagePath();
-//     Mat img = cv::imread("images/p11_76.jpg");
-
-//     // Convert to grayscale
-//     Mat gray;
-//     cvtColor(img, gray, COLOR_BGR2GRAY);
-
-//     // Otsu threshold (inverse binary)
-//     Mat thresh;
-//     threshold(gray, thresh, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
-
-//     // Noise removal: morphological opening (3x3 kernel, 2 iterations)
-//     Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
-//     Mat opening;
-//     morphologyEx(thresh, opening, MORPH_OPEN, kernel, Point(-1, -1), 2);
-
-//     // Sure background area: dilate (3 iterations)
-//     Mat sure_bg;
-//     dilate(opening, sure_bg, kernel, Point(-1, -1), 3);
-
-//     // Distance transform on opening
-//     Mat dist_transform;
-//     distanceTransform(opening, dist_transform, DIST_L2, 5); // CV_32F output
-
-//     // Threshold distance map to get sure foreground (0.7 * max)
-//     double maxVal;
-//     minMaxLoc(dist_transform, nullptr, &maxVal);
-//     Mat sure_fg;
-//     threshold(dist_transform, sure_fg, 0.7 * maxVal, 255, THRESH_BINARY);
-
-//     // sure_fg must be 8U for later steps
-//     sure_fg.convertTo(sure_fg, CV_8U);
-
-//     // Unknown region = sure_bg - sure_fg
-//     Mat unknown;
-//     subtract(sure_bg, sure_fg, unknown);
-
-//     // Marker labelling on sure foreground
-//     Mat markers;
-//     int nLabels = connectedComponents(sure_fg, markers); // markers: CV_32S
-
-//     // Add one so background is 1 instead of 0
-//     markers = markers + 1;
-
-//     // Mark unknown region with 0
-//     markers.setTo(0, unknown == 255);
-
-//     // Watershed (modifies markers in place)
-//     Mat img_for_ws = img.clone();
-//     watershed(img_for_ws, markers);
-
-//     // Draw boundaries (pixels with label -1). Keep same BGR as your Python: [255, 0, 0]
-//     Mat boundaryMask = (markers == -1);
-//     img.setTo(Scalar(0, 255, 255), boundaryMask);
-
-//     // Show result
-//     imshow("Original Image with Watershed Boundaries", img);
-//     waitKey(0);
-
-//     return 0;
-// }
 
 Mat k_means(Mat input, int K){
     Mat samples(input.rows * input.cols ,input.channels(), CV_32F);
@@ -140,25 +69,109 @@ Mat k_means(Mat input, int K){
     return new_img;
 }
 
+// --- helpers ---
+static Mat toGray(const Mat& src){
+    Mat g;
+    if(src.channels()==3) cvtColor(src, g, COLOR_BGR2GRAY);
+    else g = src.clone();
+    return g;
+}
+
+static Mat adaptiveBinForeground(const Mat& gray, int block=31, double C=5){
+    // Make pills (foreground) white regardless of lighter/darker background
+    Mat bin, bin_inv;
+    adaptiveThreshold(gray, bin,     255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY,      block, C);
+    adaptiveThreshold(gray, bin_inv, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV,  block, C);
+    // Heuristic: pills occupy less area than background → pick smaller white area
+    return (countNonZero(bin) < countNonZero(bin_inv)) ? bin : bin_inv;
+}
+
+static void findAndFillContours(const Mat& bw, Mat& filled, vector<vector<Point>>& contours){
+    Mat src = bw.clone();
+    findContours(src, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+    filled = Mat::zeros(bw.size(), CV_8U);
+    drawContours(filled, contours, -1, Scalar(255), FILLED);
+}
+
+static void distanceAndComponents(const Mat& filled, Mat& dist32f, Mat& sureFG, Mat& markers){
+    // Clean small noise first
+    Mat clean;
+    morphologyEx(filled, clean, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(3,3)), Point(-1,-1), 1);
+
+    // Distance transform
+    distanceTransform(clean, dist32f, DIST_L2, 3);
+    Mat distNorm; normalize(dist32f, distNorm, 0, 1.0, NORM_MINMAX);
+    threshold(distNorm, sureFG, 0.4, 255, THRESH_BINARY); // keep confident peaks
+    sureFG.convertTo(sureFG, CV_8U);
+
+    // Connected components on sure foreground → markers (labels start at 1)
+    connectedComponents(sureFG, markers);
+    // Make background 0, shift labels by +1 so that 0 can be reserved (if watershed later)
+    markers += 1;
+
+    // Optional: mark unknown region (sureBG - sureFG) as 0 (not strictly required here)
+    Mat sureBG; dilate(clean, sureBG, getStructuringElement(MORPH_ELLIPSE, Size(5,5)), Point(-1,-1), 2);
+    Mat unknown; subtract(sureBG, sureFG, unknown);
+    markers.setTo(0, unknown > 0);
+}
+
+static void drawMarkersOn(Mat& img, const Mat& markers){
+    // Draw a small circle & id at each component centroid (id >= 2 after shift)
+    double minv, maxv; minMaxLoc(markers, &minv, &maxv);
+    for(int lbl=2; lbl<= (int)maxv; ++lbl){
+        Mat mask = (markers == lbl);
+        Moments m = moments(mask, true);
+        if(m.m00 < 5.0) continue; // skip tiny blobs
+        Point2d c(m.m10/m.m00, m.m01/m.m00);
+        circle(img, c, 6, Scalar(0,0,255), 2);
+        putText(img, std::to_string(lbl-1), c + Point2d(8, -8), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0,0,255), 1);
+    }
+}
+
+// --- pipeline ---
+// Given: Mat img (original BGR), Mat clus_img (your 3-cluster image)
+static void processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img){
+    // 1) threshold
+    Mat gray = toGray(clus_img);
+    Mat bw   = adaptiveBinForeground(gray);
+
+    // 2) find & fill contours
+    vector<vector<Point>> contours;
+    Mat filled;
+    findAndFillContours(bw, filled, contours);
+
+    // 3) distance transform + connected components → markers
+    Mat dist32f, sureFG, markers;
+    distanceAndComponents(filled, dist32f, sureFG, markers);
+
+    // 4) overlay markers on original image
+    Mat vis = img.clone();
+    drawMarkersOn(vis, markers);
+
+    // (Optional) quick visualization windows
+    imshow("01_Gray", gray);
+    imshow("02_AdaptiveForeground", bw);
+    imshow("03_FilledContours", filled);
+    Mat distShow; normalize(dist32f, distShow, 0, 255, NORM_MINMAX); distShow.convertTo(distShow, CV_8U);
+    imshow("04_Distance", distShow);
+    imshow("05_SureFG", sureFG);
+    imshow("06_Markers_on_Original", vis);
+    waitKey(0);
+}
+
 int main() {
     string path = randomImagePath();
     Mat img = cv::imread(path);
-    Mat blur; GaussianBlur(img, blur, Size(5, 5), 0, 0);
-    Mat lab; cvtColor(blur, lab, COLOR_BGR2Lab);
-    vector<Mat> ch; split(lab, ch);
-    Mat L = ch[0];
-    imshow("Luminance", L);
-
-    Mat thresh; adaptiveThreshold(L, thresh, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 15, 5);
-    imshow("Thresholded Image", thresh);
+    // resize(img, img, Size(400,400), INTER_AREA);
 
     //total number of clusters in which the input will be segmented:
     int seg_clusters = 3; 
     
-    Mat clustered_image = k_means(img, seg_clusters);
+    Mat clus_img = k_means(img, seg_clusters);
 
-    imshow("Clustered Image", clustered_image);
+    imshow("Clustered Image", clus_img);
+    processClusteredAndOverlayMarkers(img, clus_img);
+    
     waitKey(0);
-
     return 0;
 }
