@@ -98,7 +98,7 @@ The algorithm applies a **distance transform** per connected component and compu
 
 ### 5. Counting and Accuracy Evaluation
 
-Connected components from the seed map are counted as detected pills. The ground truth pill count is parsed from the filename (e.g., `p19_44` → actual count = 44). Accuracy is calculated as:
+Connected components from the seed map are counted as detected pills. The ground truth pill count is parsed from the filename (e.g., `p10_27` → actual count = 27). Accuracy is calculated as:
 
 ```
 Accuracy = (Detected / Actual) * 100
