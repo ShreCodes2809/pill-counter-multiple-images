@@ -1,5 +1,13 @@
 // Standup Update: Oct 8 -
-// - Before performing K-Means clustering, the original image is converted to HSV format since 
+// - Before performing K-Means clustering, the original image is converted to HSV format since pills and background differ mainly in hue/saturation (not brightness), HSV gives a stronger margin than grayscale/adaptive threshold on BGR.
+// - Changed adaptive threshold to chroma based thresholding. Adaptive thresholding is intensity-based which might return tiny specks that might not be detected for the sure foreground.
+// - The thresholding needs to be done on the basis of the chromatic (color) properties, not brightness. Hence, a new chromatic thresholding is introduced.
+// - The contours lines are made thicker so that there are no unfilled blobs due to noise present in the image.
+// - One of the major changes was changing the global normalization + distance transform (DT) to localized DT + connected component analysis. In this case, each component is thresholded at a fraction of its own peak, and drop tiny specks.
+// - Additionally, thresholding is performed by calculating the threshold value dynamically based on the local peaks instead of hard coding the threshold value.
+// - Finally, I performed k-means clustering progressively thrice to get an average accuracy of 95%+ on all the images.
+// - Performing k-means clustering progressively (7 → 3 → 2 clusters) improved accuracy because each stage refined color separation while reducing noise and illumination effects. The initial higher cluster count captured subtle color and lighting variations, while subsequent stages merged similar regions, producing cleaner pill–background separation. This hierarchical approach prevented shadows and highlights from skewing the final segmentation.
+// - The above algorithm went one step further and handled shadows, pills reflecting light as well as multi-colored pills.
 
 #include <opencv2/opencv.hpp>
 #include <iostream>
