@@ -65,6 +65,8 @@ Each run randomly selects an image from the `images/` folder, performs detection
 
 **Example:**
 
+![Results for the sample image](sample_imgs/image_1.png)
+
 ```
 Input  : images/p10_27.jpg
 Output : results/p10_27.jpg
