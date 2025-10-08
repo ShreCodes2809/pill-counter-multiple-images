@@ -156,7 +156,7 @@ The hierarchical k-means approach achieves **>95% average accuracy** across test
 
 ## License
 
-This project is released under the MIT License.
+This project is released under the Apache-2.0 License.
 
 ---
 
