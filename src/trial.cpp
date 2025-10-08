@@ -1,8 +1,5 @@
-// Standup Update: Oct 7 -
-// - I reduced the number of clusters from 3 to 2, performed adaptive thresholding using the gaussian method instead of the mean, and reduced the block size to '9'.
-// - Additionally, I increased the value of constant 'C' to '7' since it biases towards filling less area in the contours.
-// - Added code to calculate the accuracy for the number of pills detected in each image and got 100% accuracy on most of the images
-// - Saved the images separately in a 'results' folder with the original image name along with the new number of pills detected
+// Standup Update: Oct 8 -
+// - Before performing K-Means clustering, the original image is converted to HSV format since 
 
 #include <opencv2/opencv.hpp>
 #include <iostream>
@@ -33,7 +30,6 @@ std::string randomImagePath(const fs::path& root = "images") {
     return files[dist(rng)].string();
 }
 
-// ---------------------------------------------------------------------
 Mat k_means(Mat input, int K) {
     Mat samples(input.rows * input.cols ,input.channels(), CV_32F);
     for (int y = 0; y < input.rows; y++) {
@@ -75,14 +71,46 @@ static Mat toGray(const Mat& src) {
     return g;
 }
 
-static Mat adaptiveBinForeground(const Mat& gray, int block=9, double C=7) {
-    Mat bin, bin_inv;
-    adaptiveThreshold(gray, bin, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, C);
-    adaptiveThreshold(gray, bin_inv, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, block, C);
-    return (countNonZero(bin) < countNonZero(bin_inv)) ? bin : bin_inv;
+// static Mat adaptiveBinForeground(const Mat& gray, int block=9, double C=7) {
+//     Mat bin, bin_inv;
+//     adaptiveThreshold(gray, bin, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, C);
+//     adaptiveThreshold(gray, bin_inv, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, block, C);
+//     return (countNonZero(bin) < countNonZero(bin_inv)) ? bin : bin_inv;
+// }
+
+static Mat chromaBinForeground(const Mat& bgr) {
+    CV_Assert(bgr.channels()==3);
+    Mat lab; cvtColor(bgr, lab, COLOR_BGR2Lab);
+    vector<Mat> ch; split(lab, ch); // L,a,b
+
+    // Model background chroma from image borders
+    Mat border = Mat::zeros(bgr.size(), CV_8U);
+    int m = std::max(5, std::min(bgr.rows, bgr.cols)/40);
+    rectangle(border, Rect(0,0,bgr.cols,m),           255, FILLED);
+    rectangle(border, Rect(0,bgr.rows-m,bgr.cols,m),  255, FILLED);
+    rectangle(border, Rect(0,0,m,bgr.rows),           255, FILLED);
+    rectangle(border, Rect(bgr.cols-m,0,m,bgr.rows),  255, FILLED);
+    Scalar meanA = mean(ch[1], border);
+    Scalar meanB = mean(ch[2], border);
+
+    // Chroma distance map: sqrt((a-a_bg)^2 + (b-b_bg)^2)
+    Mat a32, b32; ch[1].convertTo(a32, CV_32F); ch[2].convertTo(b32, CV_32F);
+    Mat da = a32 - (float)meanA[0], db = b32 - (float)meanB[0];
+    Mat dist; magnitude(da, db, dist);                    // CV_32F
+    Mat dist8; normalize(dist, dist8, 0, 255, NORM_MINMAX); dist8.convertTo(dist8, CV_8U);
+
+    // Robust global threshold on chroma distance
+    Mat bw; threshold(dist8, bw, 0, 255, THRESH_BINARY | THRESH_OTSU);
+
+    // Small cleanup to fill tiny gaps
+    morphologyEx(bw, bw, MORPH_CLOSE, getStructuringElement(MORPH_ELLIPSE, Size(3,3)));
+    return bw;
 }
 
 static void findAndFillContours(const Mat& bw, Mat& filled, vector<vector<Point>>& contours) {
+    // Make edges thick & closed so contours are closed loops
+    morphologyEx(bw, bw, MORPH_CLOSE,
+                getStructuringElement(MORPH_ELLIPSE, Size(3,3)), Point(-1,-1), 1);
     Mat src = bw.clone();
     findContours(src, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
     filled = Mat::zeros(bw.size(), CV_8U);
@@ -93,15 +121,46 @@ static int distanceAndComponents(const Mat& filled, Mat& dist32f, Mat& sureFG, M
     Mat clean;
     morphologyEx(filled, clean, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(3,3)));
 
-    distanceTransform(clean, dist32f, DIST_L2, 3);
-    Mat distNorm; normalize(dist32f, distNorm, 0, 1.0, NORM_MINMAX);
-    threshold(distNorm, sureFG, 0.4, 255, THRESH_BINARY);
-    sureFG.convertTo(sureFG, CV_8U);
+    // Clean tiny noise first (optional area filter)
+    Mat lbl, stats, centroids;
+    int ncc = connectedComponentsWithStats(filled, lbl, stats, centroids, 8, CV_32S);
+    Mat cleaned = Mat::zeros(filled.size(), CV_8U);
+    for (int i = 1; i < ncc; ++i) {
+        if (stats.at<int>(i, CC_STAT_AREA) >= 80)   // tune min area
+            cleaned.setTo(255, (lbl == i));
+    }
+    
+    // Seeds per component using local DT peak
+    Mat seeds = Mat::zeros(filled.size(), CV_8U);
+    for (int i = 1; i < ncc; ++i) {
+        if (stats.at<int>(i, CC_STAT_AREA) < 80) continue;
+        Mat compMask = (lbl == i);
+
+        Mat dist; distanceTransform(compMask, dist, DIST_L2, 3);
+        double maxv = 0; minMaxLoc(dist, nullptr, &maxv, nullptr, nullptr, compMask);
+        if (maxv < 2.0) continue;                             // ignore tiny blobs
+        
+        Mat s;
+        // threshold(dist, s, 0.45 * maxv, 255, THRESH_BINARY); // local threshold
+
+        double area = stats.at<int>(i, CC_STAT_AREA);
+        Scalar meanDist = mean(dist, compMask);
+        double ratio = meanDist[0] / maxv;
+        double factor = std::clamp(0.45 + 0.3 * ratio + 200.0 / (area + 50.0), 0.27, 0.73);
+        threshold(dist, s, factor * maxv, 255, THRESH_BINARY);
+
+        s.convertTo(s, CV_8U);
+        morphologyEx(s, s, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(3,3))); // de-noise seeds
+        seeds |= s;
+    }
+
+    // expose outputs in your function
+    distanceTransform(cleaned, dist32f, DIST_L2, 3);  // keep DT if you still want to visualize it
+    sureFG = seeds.clone();
 
     connectedComponents(sureFG, markers);
     markers += 1;
-
-    Mat sureBG; dilate(clean, sureBG, getStructuringElement(MORPH_ELLIPSE, Size(5,5)));
+    Mat sureBG; dilate(cleaned, sureBG, getStructuringElement(MORPH_ELLIPSE, Size(5,5)), Point(-1,-1), 2);
     Mat unknown; subtract(sureBG, sureFG, unknown);
     markers.setTo(0, unknown > 0);
 
@@ -127,9 +186,10 @@ static void drawMarkersOn(Mat& img, const Mat& markers) {
 
 // ---------------------------------------------------------------------
 static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img, Mat& visOut) {
-    Mat gray = toGray(clus_img);
-    Mat blurGray; medianBlur(gray, blurGray, 3);
-    Mat bw = adaptiveBinForeground(blurGray);
+    // Mat gray = toGray(clus_img);
+    // Mat blurGray; medianBlur(gray, blurGray, 3);
+    // Mat bw = adaptiveBinForeground(blurGray);
+    Mat bw = chromaBinForeground(clus_img);
 
     vector<vector<Point>> contours;
     Mat filled;
@@ -142,10 +202,10 @@ static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img
     drawMarkersOn(visOut, markers);
 
     // Optional visualization
-    imshow("02_AdaptiveForeground", bw);
-    imshow("03_FilledContours", filled);
-    imshow("SureFG", sureFG);
-    imshow("Markers_on_Original", visOut);
+    // imshow("01_AdaptiveChromaForeground", bw);
+    // imshow("02_FilledContours", filled);
+    imshow("03_SureFG", sureFG);
+    imshow("04_Markers_on_Original", visOut);
 
     return numPills; // 🔹 return count
 }
@@ -159,14 +219,21 @@ int main() {
         return -1;
     }
 
-    int seg_clusters = 2;
-    Mat clus_img = k_means(img, seg_clusters);
+    Mat hsv_img; cvtColor(img, hsv_img, COLOR_BGR2HSV);
 
     imshow("Original Image", img);
-    imshow("Clustered Image", clus_img);
+    imshow("HSV Transformed Image", hsv_img);
+
+    int seg_clusters_1 = 7;
+    Mat clus_img_init = k_means(hsv_img, seg_clusters_1);
+    Mat clus_img_mid = k_means(clus_img_init, 3);
+    Mat clus_img_final = k_means(clus_img_mid, 2);
+
+    imshow("Initial Clustered Image", clus_img_init);
+    imshow("Final Clustered Image", clus_img_final);
 
     Mat vis;
-    int numPills = processClusteredAndOverlayMarkers(img, clus_img, vis);
+    int numPills = processClusteredAndOverlayMarkers(img, clus_img_final, vis);
 
     // 🔹 Print number of pills detected
     cout << "Detected pills: " << numPills << endl;
@@ -198,10 +265,10 @@ int main() {
         cout << "Actual pills: " << actualCount << endl;
         cout << "Detected pills: " << numPills << endl;
         if (numPills > actualCount)
-            cout << "⚠️ Detected more pills than actual (possible false positives).\n";
+            cout << "Detected more pills than actual (possible false positives).\n";
         cout << "Accuracy: " << fixed << setprecision(2) << accuracy << "%\n";
     } else {
-        cout << "⚠️ Could not determine actual pill count from filename.\n";
+        cout << "Could not determine actual pill count from filename.\n";
     }
 
     // 🔹 Save image
