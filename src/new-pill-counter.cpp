@@ -199,7 +199,7 @@ static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img
     // imshow("01_AdaptiveChromaForeground", bw);
     // imshow("02_FilledContours", filled);
     // imshow("03_SureFG", sureFG);
-    // imshow("04_Markers_on_Original", visOut);
+    imshow("04_Markers_on_Original", visOut);
 
     return numPills; // 🔹 return count
 }
