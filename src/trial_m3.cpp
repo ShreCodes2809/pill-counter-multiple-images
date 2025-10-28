@@ -387,66 +387,80 @@ static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img
     return numPills; // 🔹 return count
 }
 
-// ---------------------------------------------------------------------
 int main() {
-    string path = randomImagePath();
-    Mat img = imread(path);
-    if (img.empty()) {
-        cerr << "Failed to read image: " << path << endl;
+    fs::path imgDir = "images";
+    if (!fs::exists(imgDir) || !fs::is_directory(imgDir)) {
+        cerr << "❌ 'images' directory not found!" << endl;
         return -1;
     }
 
-    Mat clahe_lab = claheLabL(img);
-    Mat hsv_img; cvtColor(clahe_lab, hsv_img, COLOR_BGR2HSV);
-    // Mat lab_img; cvtColor(clahe_lab, lab_img, COLOR_BGR2Lab);
+    for (const auto& entry : fs::directory_iterator(imgDir)) {
+        if (!entry.is_regular_file()) continue;
 
-    imshow("Original Image", img);
-    imshow("HSV Transformed Image", hsv_img);
-    // imshow("Lab Transformed Image", lab_img);
+        string ext = entry.path().extension().string();
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        if (ext != ".jpg" && ext != ".jpeg" && ext != ".png" &&
+            ext != ".bmp" && ext != ".tif" && ext != ".tiff") continue;
 
-    Mat vis;
-    int numPills = processClusteredAndOverlayMarkers(img, hsv_img, vis);
-
-    // 🔹 Print number of pills detected
-    cout << "Detected pills: " << numPills << endl;
-
-    // 🔹 Extract filename parts
-    fs::path inputPath(path);
-    string baseName = inputPath.stem().string(); // e.g., "p19_44"
-    string ext = inputPath.extension().string(); // e.g., ".png"
-
-    // 🔹 Construct output filename: "<original_name>_<detected_count>.png"
-    size_t pos = baseName.find('_');
-    std::string prefix = (pos != std::string::npos) ? baseName.substr(0, pos) : baseName;
-    string outName = prefix + "_" + to_string(numPills) + ext;
-    fs::path outPath = fs::path("results") / outName;
-    
-    // 🔹 Extract actual number of pills from filename and compute accuracy
-    int actualCount = 0;
-    size_t pos_ = baseName.find('_');
-    if (pos_ != std::string::npos && pos_ + 1 < baseName.size()) {
-        try {
-            actualCount = std::stoi(baseName.substr(pos_ + 1));
-        } catch (...) {
-            cerr << "Warning: Could not parse actual pill count from filename.\n";
+        string path = entry.path().string();
+        Mat img = imread(path);
+        if (img.empty()) {
+            cerr << "⚠️ Skipping unreadable file: " << path << endl;
+            continue;
         }
-    }
 
-    if (actualCount > 0) {
-        double accuracy = (static_cast<double>(numPills) / actualCount) * 100.0;
-        cout << "Actual pills: " << actualCount << endl;
+        cout << "\n=============================" << endl;
+        cout << "Processing: " << entry.path().filename() << endl;
+
+        // --- Preprocessing: CLAHE and HSV transformation ---
+        Mat clahe_lab = claheLabL(img);
+        Mat hsv_img; cvtColor(clahe_lab, hsv_img, COLOR_BGR2HSV);
+
+        // --- Visualization (optional) ---
+        // imshow("Original Image", img);
+        // imshow("HSV Transformed Image", hsv_img);
+
+        // --- Process and detect pills ---
+        Mat vis;
+        int numPills = processClusteredAndOverlayMarkers(img, hsv_img, vis);
         cout << "Detected pills: " << numPills << endl;
-        if (numPills > actualCount)
-            cout << "Detected more pills than actual (possible false positives).\n";
-        cout << "Accuracy: " << fixed << setprecision(2) << accuracy << "%\n";
-    } else {
-        cout << "Could not determine actual pill count from filename.\n";
+
+        // --- Extract filename details ---
+        fs::path inputPath(path);
+        string baseName = inputPath.stem().string();
+        string extOut = inputPath.extension().string();
+
+        size_t pos = baseName.find('_');
+        std::string prefix = (pos != std::string::npos) ? baseName.substr(0, pos) : baseName;
+        string outName = prefix + "_" + to_string(numPills) + extOut;
+        fs::path outPath = fs::path("results") / outName;
+
+        // --- Extract ground truth & compute accuracy ---
+        int actualCount = 0;
+        if (pos != std::string::npos && pos + 1 < baseName.size()) {
+            try {
+                actualCount = std::stoi(baseName.substr(pos + 1));
+            } catch (...) {
+                cerr << "⚠️ Could not parse actual pill count from filename.\n";
+            }
+        }
+
+        if (actualCount > 0) {
+            double accuracy = (static_cast<double>(numPills) / actualCount) * 100.0;
+            cout << "Actual pills: " << actualCount << endl;
+            cout << "Detected pills: " << numPills << endl;
+            if (numPills > actualCount)
+                cout << "⚠️ Detected more pills than actual (possible false positives).\n";
+            cout << "Accuracy: " << fixed << setprecision(2) << accuracy << "%\n";
+        } else {
+            cout << "⚠️ Could not determine actual pill count from filename.\n";
+        }
+
+        // --- Save annotated output ---
+        imwrite(outPath.string(), vis);
+        cout << "✅ Saved result: " << outPath << endl;
     }
 
-    // 🔹 Save image
-    imwrite(outPath.string(), vis);
-    cout << "Saved result: " << outPath << endl;
-
-    waitKey(0);
+    cout << "\nAll images processed successfully!\n";
     return 0;
 }
