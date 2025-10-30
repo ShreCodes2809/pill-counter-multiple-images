@@ -204,6 +204,9 @@
 #include <iostream>
 #include <filesystem>
 #include <random>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
 #include <vector>
 #include <string>
 
@@ -313,23 +316,31 @@ static int distanceAndComponents(const Mat& filled, Mat& dist32f, Mat& sureFG, M
         if (stats.at<int>(i, CC_STAT_AREA) < 80) continue;
         Mat compMask = (lbl == i);
 
-        Mat dist; distanceTransform(compMask, dist, DIST_L2, 3);
-        double maxv = 0; minMaxLoc(dist, nullptr, &maxv, nullptr, nullptr, compMask);
-        if (maxv < 2.0) continue;                             // ignore tiny blobs
-        
-        Mat s;
-        // threshold(dist, s, 0.45 * maxv, 255, THRESH_BINARY); // local threshold
+        Mat dist;
+        distanceTransform(compMask, dist, DIST_L2, 3);
 
+        // --- NEW: normalize + smooth to reduce fragmented peaks ---
+        normalize(dist, dist, 0, 1, NORM_MINMAX);
+        GaussianBlur(dist, dist, Size(5,5), 0);
+
+        double maxv = 0;
+        minMaxLoc(dist, nullptr, &maxv, nullptr, nullptr, compMask);
+        if (maxv < 0.05) continue;
+
+        Mat s;
         double area = stats.at<int>(i, CC_STAT_AREA);
         Scalar meanDist = mean(dist, compMask);
         double ratio = meanDist[0] / maxv;
-        double factor = std::clamp(0.45 + 0.3 * ratio + 200.0 / (area + 50.0), 0.27, 0.73);
+        double factor = std::clamp(0.45 + 0.3 * ratio + 200.0 / (area + 50.0), 0.40, 0.80);
+
+        // --- threshold now uses smoothed, normalized distance map ---
         threshold(dist, s, factor * maxv, 255, THRESH_BINARY);
 
         s.convertTo(s, CV_8U);
         morphologyEx(s, s, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(3,3))); // de-noise seeds
         seeds |= s;
     }
+
 
     // expose outputs in your function
     distanceTransform(cleaned, dist32f, DIST_L2, 3);  // keep DT if you still want to visualize it
@@ -390,77 +401,67 @@ static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img
 int main() {
     fs::path imgDir = "images";
     if (!fs::exists(imgDir) || !fs::is_directory(imgDir)) {
-        cerr << "❌ 'images' directory not found!" << endl;
+        cerr << "'images' directory not found!\n";
         return -1;
     }
+    fs::create_directories("results"); // just to hold the log
+    std::ofstream log("results/run_log.txt", std::ios::app);
+    auto logln = [&](const std::string& s){ std::cout << s << '\n'; if (log) log << s << '\n'; };
 
     for (const auto& entry : fs::directory_iterator(imgDir)) {
         if (!entry.is_regular_file()) continue;
-
-        string ext = entry.path().extension().string();
+        std::string ext = entry.path().extension().string();
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
         if (ext != ".jpg" && ext != ".jpeg" && ext != ".png" &&
             ext != ".bmp" && ext != ".tif" && ext != ".tiff") continue;
 
-        string path = entry.path().string();
+        std::string path = entry.path().string();
         Mat img = imread(path);
-        if (img.empty()) {
-            cerr << "⚠️ Skipping unreadable file: " << path << endl;
-            continue;
-        }
+        if (img.empty()) { logln("⚠️ Skipping unreadable file: " + path); continue; }
 
-        cout << "\n=============================" << endl;
-        cout << "Processing: " << entry.path().filename() << endl;
-
-        // --- Preprocessing: CLAHE and HSV transformation ---
+        // --- Preprocess & transform ---
         Mat clahe_lab = claheLabL(img);
-        Mat hsv_img; cvtColor(clahe_lab, hsv_img, COLOR_BGR2HSV);
 
-        // --- Visualization (optional) ---
-        // imshow("Original Image", img);
-        // imshow("HSV Transformed Image", hsv_img);
-
-        // --- Process and detect pills ---
+        // --- Run pipeline (this also shows intermediate windows if enabled inside) ---
         Mat vis;
-        int numPills = processClusteredAndOverlayMarkers(img, hsv_img, vis);
-        cout << "Detected pills: " << numPills << endl;
+        int numPills = processClusteredAndOverlayMarkers(img, clahe_lab, vis);
 
-        // --- Extract filename details ---
-        fs::path inputPath(path);
-        string baseName = inputPath.stem().string();
-        string extOut = inputPath.extension().string();
-
-        size_t pos = baseName.find('_');
-        std::string prefix = (pos != std::string::npos) ? baseName.substr(0, pos) : baseName;
-        string outName = prefix + "_" + to_string(numPills) + extOut;
-        fs::path outPath = fs::path("results") / outName;
-
-        // --- Extract ground truth & compute accuracy ---
-        int actualCount = 0;
-        if (pos != std::string::npos && pos + 1 < baseName.size()) {
-            try {
-                actualCount = std::stoi(baseName.substr(pos + 1));
-            } catch (...) {
-                cerr << "⚠️ Could not parse actual pill count from filename.\n";
-            }
+        // --- Parse ground-truth from filename and log ---
+        fs::path inPath(path);
+        std::string baseName = inPath.stem().string(); // e.g., p19_44
+        size_t us = baseName.find('_');
+        int actual = 0;
+        if (us != std::string::npos && us + 1 < baseName.size()) {
+            try { actual = std::stoi(baseName.substr(us + 1)); } catch (...) {}
         }
-
-        if (actualCount > 0) {
-            double accuracy = (static_cast<double>(numPills) / actualCount) * 100.0;
-            cout << "Actual pills: " << actualCount << endl;
-            cout << "Detected pills: " << numPills << endl;
-            if (numPills > actualCount)
-                cout << "⚠️ Detected more pills than actual (possible false positives).\n";
-            cout << "Accuracy: " << fixed << setprecision(2) << accuracy << "%\n";
+        std::ostringstream oss;
+        oss << "File: " << inPath.filename().string()
+            << " | Detected: " << numPills;
+        if (actual > 0) {
+            double acc = 100.0 * (static_cast<double>(numPills) / actual);
+            oss << " | Actual: " << actual << " | Accuracy: " << std::fixed << std::setprecision(2) << acc << "%";
+            if (numPills > actual) oss << " | Note: possible false positives";
         } else {
-            cout << "⚠️ Could not determine actual pill count from filename.\n";
+            oss << " | Actual: N/A";
         }
+        logln(oss.str());
 
-        // --- Save annotated output ---
-        imwrite(outPath.string(), vis);
-        cout << "✅ Saved result: " << outPath << endl;
+        // --- Display images (no saving) ---
+        imshow("Original Image", img);
+        imshow("CLAHE Transformed Image", clahe_lab);
+        imshow("04_Markers_on_Original", vis);
+
+        // Controls: press ESC/Q to quit, any other key to proceed to next image
+        int key = cv::waitKey(0);
+        if (key == 27 || key == 'q' || key == 'Q') break;
+        cv::destroyAllWindows();
     }
 
-    cout << "\nAll images processed successfully!\n";
+    logln("Finished displaying all images.");
     return 0;
 }
+
+// Standup Update: Oct 29 -
+// - Runs the algorithm to count the number of pills where I am passing an HSV image in the chromaBinForeground function, thus, getting the worst accuracy of 1.92% on the below image ('p17_52.png')
+// - Instead of HSV, passed the CLAHE transformed image - got 100% accuracy on 16/20 images and one image having 90% accuracy. 2 images have accuracies of 70% and 66.07% while one image has an accuracy of 13.33%
+// - 
