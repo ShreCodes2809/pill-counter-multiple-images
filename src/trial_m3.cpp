@@ -461,7 +461,3 @@ int main() {
     return 0;
 }
 
-// Standup Update: Oct 29 -
-// - Runs the algorithm to count the number of pills where I am passing an HSV image in the chromaBinForeground function, thus, getting the worst accuracy of 1.92% on the below image ('p17_52.png')
-// - Instead of HSV, passed the CLAHE transformed image - got 100% accuracy on 16/20 images and one image having 90% accuracy. 2 images have accuracies of 70% and 66.07% while one image has an accuracy of 13.33%
-// - 
