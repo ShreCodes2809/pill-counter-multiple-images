@@ -12,7 +12,21 @@ using namespace cv;
 using namespace std;
 namespace fs = std::filesystem;
 
-std::string randomImagePath(const fs::path& root = "images") {
+std::string randomImagePath(const fs::path& root = "images") 
+/**
+ * @brief Selects a random image file path from a given directory.
+ *
+ * This function scans the specified directory for valid image files 
+ * (extensions: .jpg, .jpeg, .png, .bmp, .tif, .tiff) and randomly 
+ * selects one file path to return.
+ *
+ * @param root The root directory to search for image files. 
+ *             Defaults to "images".
+ * @return std::string The full path of a randomly selected image file.
+ *
+ * @throws std::runtime_error If no image files are found in the directory.
+ */
+{
     std::vector<fs::path> files;
     for (const auto& entry : fs::directory_iterator(root)) {
         if (!entry.is_regular_file()) continue;
@@ -38,7 +52,26 @@ static Mat toGray(const Mat& src) {
     return g;
 }
 
-static cv::Mat claheLabL(const cv::Mat& bgr, double clip=3.0, cv::Size tiles=cv::Size(8,8)){
+static cv::Mat claheLabL(const cv::Mat& bgr, double clip=3.0, cv::Size tiles=cv::Size(8,8))
+/**
+ * @brief Enhances image contrast by applying CLAHE to the L-channel in Lab color space.
+ *
+ * This function converts a BGR image to Lab color space, applies 
+ * Contrast Limited Adaptive Histogram Equalization (CLAHE) on the 
+ * luminance (L) channel to improve contrast, and then converts the 
+ * image back to BGR format. The a and b channels (color information) 
+ * remain unchanged.
+ *
+ * @param bgr Input 3-channel BGR image.
+ * @param clip Clip limit for CLAHE contrast enhancement. Default is 3.0.
+ * @param tiles Size of the grid for histogram equalization. Default is 8x8.
+ *
+ * @return cv::Mat Contrast-enhanced BGR image.
+ *
+ * @note This operation helps normalize lighting and improve visual clarity
+ *       without altering the color balance.
+ */
+{
     CV_Assert(bgr.channels()==3);
     cv::Mat lab; cv::cvtColor(bgr, lab, cv::COLOR_BGR2Lab);
     std::vector<cv::Mat> ch; cv::split(lab, ch);           // L,a,b
@@ -49,7 +82,30 @@ static cv::Mat claheLabL(const cv::Mat& bgr, double clip=3.0, cv::Size tiles=cv:
     return out;
 }
 
-static Mat chromaBinForeground(const Mat& bgr) {
+static Mat chromaBinForeground(const Mat& bgr)
+/**
+ * @brief Generates a binary foreground mask based on chromatic contrast from the background.
+ *
+ * This function identifies foreground regions (e.g., pills) by analyzing color
+ * differences in the Lab color space. It models the background chroma using the 
+ * image borders and computes the Euclidean distance of each pixel’s (a,b) chroma 
+ * values from the background mean. The distance map is then globally thresholded 
+ * using Otsu’s method to produce a binary mask.
+ *
+ * Steps:
+ *  1. Convert input BGR image to Lab color space.
+ *  2. Estimate background chroma (mean a,b) from the image borders.
+ *  3. Compute per-pixel chroma distance from background.
+ *  4. Normalize and apply Otsu thresholding to extract the foreground.
+ *  5. Apply morphological closing to fill small gaps and smooth edges.
+ *
+ * @param bgr Input 3-channel BGR image.
+ * @return cv::Mat Binary mask (255 = foreground, 0 = background).
+ *
+ * @note This method works well when the foreground objects have distinct chromatic
+ *       properties compared to the background, even under variable lighting.
+ */
+{
     CV_Assert(bgr.channels()==3);
     Mat lab; cvtColor(bgr, lab, COLOR_BGR2Lab);
     vector<Mat> ch; split(lab, ch); // L,a,b
@@ -78,7 +134,41 @@ static Mat chromaBinForeground(const Mat& bgr) {
     return bw;
 }
 
-static int distanceAndComponents(const Mat& filled, Mat& dist32f, Mat& sureFG, Mat& markers) {
+static int distanceAndComponents(const Mat& filled, Mat& dist32f, Mat& sureFG, Mat& markers)
+/**
+ * @brief Generates marker regions and seed points for watershed segmentation.
+ *
+ * This function refines a binary mask (`filled`) and computes both the 
+ * distance transform and connected components to create markers for 
+ * subsequent watershed-based separation of touching objects.
+ *
+ * Steps:
+ *  1. Apply morphological opening to remove small noise.
+ *  2. Identify connected components and filter out tiny blobs 
+ *     (area < 80 pixels).
+ *  3. For each valid component:
+ *      - Compute its distance transform.
+ *      - Normalize and smooth the distance map to avoid fragmented peaks.
+ *      - Derive a per-component threshold based on its area and mean 
+ *        distance-to-max ratio.
+ *      - Threshold to produce localized seed regions for each blob.
+ *  4. Combine all seed masks to form the final `sureFG` (sure foreground).
+ *  5. Create watershed markers:
+ *      - `connectedComponents()` assigns unique labels to each seed.
+ *      - Dilated `cleaned` mask defines the sure background.
+ *      - Unknown areas (BG − FG) are set to 0 in the markers.
+ *
+ * @param filled Input binary mask (typically from chroma-based segmentation).
+ * @param dist32f Output 32-bit float distance transform for visualization.
+ * @param sureFG Output binary mask representing the sure foreground regions.
+ * @param markers Output integer label image used as markers for watershed.
+ * @return int Number of detected foreground components (objects/pills).
+ *
+ * @note This method provides a deterministic and adaptive approach to 
+ *       seed generation, balancing local distance peaks and object size 
+ *       for robust separation in later watershed segmentation.
+ */
+{
     Mat clean;
     morphologyEx(filled, clean, MORPH_OPEN, getStructuringElement(MORPH_ELLIPSE, Size(3,3)));
 
@@ -140,7 +230,29 @@ static int distanceAndComponents(const Mat& filled, Mat& dist32f, Mat& sureFG, M
     return numPills;
 }
 
-static void drawMarkersOn(Mat& img, const Mat& markers) {
+static void drawMarkersOn(Mat& img, const Mat& markers)
+/**
+ * @brief Overlays numerical markers and centroids on an image.
+ *
+ * This function visualizes watershed or connected-component markers by 
+ * computing each labeled region’s centroid and drawing both a red circle 
+ * and an identifying label number at that location on the input image.
+ *
+ * Steps:
+ *  1. Iterate over all labels in `markers` (excluding background labels 0 and 1).
+ *  2. For each label:
+ *      - Extract its binary mask.
+ *      - Compute spatial moments to find its centroid.
+ *      - Skip regions with negligible area (m00 < 5).
+ *      - Draw a red circle at the centroid and place the label number next to it.
+ *
+ * @param img Input/output BGR image on which markers and labels are drawn.
+ * @param markers Integer label image where each connected region has a unique ID.
+ *
+ * @note Background (label 0/1) is ignored. This visualization is used for 
+ *       verifying segmentation accuracy and ensuring correct object counting.
+ */
+{
     double minv, maxv; minMaxLoc(markers, &minv, &maxv);
     for(int lbl=2; lbl<= (int)maxv; ++lbl){
         Mat mask = (markers == lbl);
@@ -154,7 +266,28 @@ static void drawMarkersOn(Mat& img, const Mat& markers) {
 }
 
 // Fill interior holes of foreground without contours
-static Mat fillHoles(const Mat& bw) {
+static Mat fillHoles(const Mat& bw)
+/**
+ * @brief Fills internal holes in a binary mask without using contours.
+ *
+ * This function performs a flood fill from the outer border of the image
+ * to identify the background, then inverts it to locate internal holes
+ * within the foreground. The resulting holes are merged back with the 
+ * original mask to produce a solid filled version.
+ *
+ * Steps:
+ *  1. Pad the binary image by 1 pixel on all sides to prevent edge ambiguity.
+ *  2. Perform flood fill from the top-left corner (assumed background).
+ *  3. Invert the flood-filled result to isolate holes.
+ *  4. Merge the holes with the original binary mask using bitwise OR.
+ *
+ * @param bw Input binary mask (8-bit, 0 = background, 255 = foreground).
+ * @return cv::Mat Binary mask with all interior holes filled.
+ *
+ * @note This method ensures continuous foreground regions and improves
+ *       robustness for later watershed or connected-component analysis.
+ */
+{
     CV_Assert(bw.type()==CV_8U);
     Mat ff = bw.clone();
     // Flood fill background from the outside border
@@ -169,7 +302,35 @@ static Mat fillHoles(const Mat& bw) {
 }
 
 // Marker-controlled watershed without contours
-static int splitByWatershed(const Mat& bgr, const Mat& fgMask, Mat& markersOut, Mat& sureFGOut) {
+static int splitByWatershed(const Mat& bgr, const Mat& fgMask, Mat& markersOut, Mat& sureFGOut)
+/**
+ * @brief Splits touching foreground objects using marker-controlled watershed.
+ *
+ * Given a binary foreground mask and the original BGR image, this routine:
+ *  1) Cleans the mask (small opening) and fills interior holes.
+ *  2) Computes the distance transform (DT) on the filled mask and blurs it.
+ *  3) Derives seed regions (sure foreground) by thresholding DT at a fixed
+ *     fraction of its global maximum (0.35 * max(DT)), then cleans seeds.
+ *  4) Builds watershed markers: connectedComponents(seeds) → labels (2..N),
+ *     sets background to 1, and marks unknown = (dilated FG − seeds) as 0.
+ *  5) Runs OpenCV watershed on the input color image using these markers.
+ *  6) Zeros labels outside the original foreground and along watershed ridges.
+ *  7) Returns the count of labeled objects (labels ≥ 2).
+ *
+ * @param bgr         Input 3-channel BGR image (used by cv::watershed).
+ * @param fgMask      Binary foreground mask (CV_8U; 255 = FG, 0 = BG).
+ * @param markersOut  Output label image (CV_32S): 0=unknown/invalid, 1=BG, 2..K=objects.
+ * @param sureFGOut   Output binary mask (CV_8U) of "sure foreground" seed regions.
+ * @return int        Number of detected objects (labels ≥ 2).
+ *
+ * @note The DT seed threshold (0.35 * max(DT)) controls splitting: lower → more seeds/splits,
+ *       higher → fewer. Watershed is invoked as watershed(bgr, markers); the locally computed
+ *       Sobel magnitude (grad) is not passed to watershed (OpenCV uses the provided image).
+ *
+ * @warning If fgMask under-segments (misses parts of objects), seeds will be sparse and the
+ *          watershed cannot recover missing regions. Ensure fgMask quality before this step.
+ */
+{
     CV_Assert(fgMask.type()==CV_8U && bgr.channels()==3);
 
     // Light cleanup and hole fill
@@ -228,7 +389,28 @@ static int splitByWatershed(const Mat& bgr, const Mat& fgMask, Mat& markersOut, 
 }
 
 // ---------------------------------------------------------------------
-static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img, Mat& visOut, Mat& sureFGOut) {
+static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img, Mat& visOut, Mat& sureFGOut)
+/**
+ * @brief Full per-image pipeline: build FG mask, split with watershed, and overlay markers.
+ *
+ * Orchestrates the segmentation workflow for one image:
+ *  1) Computes a chroma-based foreground mask from the contrast-normalized image (`clus_img`)
+ *     via chromaBinForeground().
+ *  2) Splits touching objects using splitByWatershed(), producing labeled markers and a
+ *     "sure foreground" seed mask.
+ *  3) Overlays marker centroids/IDs on a copy of the original image (`img`) for visualization.
+ *  4) Displays optional debug windows: "SureFG" and "Markers_on_Original".
+ *
+ * @param img         Original BGR image (used only for clean visualization output).
+ * @param clus_img    Preprocessed BGR image (e.g., CLAHE on L) used to derive the FG mask.
+ * @param visOut      Output BGR image with marker circles and label IDs drawn.
+ * @param sureFGOut   Output binary mask (CV_8U) of "sure foreground" seed regions.
+ * @return int        Estimated object count (number of labels ≥ 2 from watershed).
+ *
+ * @note The quality of `chromaBinForeground()` strongly influences splitting success.
+ *       `visOut` uses the original `img` to avoid visual artifacts from preprocessing.
+ */
+{
     
     Mat bw = chromaBinForeground(clus_img);
 
