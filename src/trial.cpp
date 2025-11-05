@@ -228,7 +228,7 @@ static int splitByWatershed(const Mat& bgr, const Mat& fgMask, Mat& markersOut, 
 }
 
 // ---------------------------------------------------------------------
-static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img, Mat& visOut) {
+static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img, Mat& visOut, Mat& sureFGOut) {
     
     Mat bw = chromaBinForeground(clus_img);
 
@@ -239,10 +239,10 @@ static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img
     drawMarkersOn(visOut, markers);
 
     // Optional visualization
-    // imshow("01_AdaptiveChromaForeground", bw);
-    // imshow("02_FilledContours", filled);
-    imshow("03_SureFG", sureFG);
-    imshow("04_Markers_on_Original", visOut);
+    imshow("SureFG", sureFG);
+    imshow("Markers_on_Original", visOut);
+
+    sureFGOut = sureFG;
 
     return numPills; // 🔹 return count
 }
@@ -272,8 +272,8 @@ int main() {
         Mat clahe_lab = claheLabL(img);
 
         // --- Run pipeline (this also shows intermediate windows if enabled inside) ---
-        Mat vis;
-        int numPills = processClusteredAndOverlayMarkers(img, clahe_lab, vis);
+        Mat vis, sureFG;
+        int numPills = processClusteredAndOverlayMarkers(img, clahe_lab, vis, sureFG);
 
         // --- Parse ground-truth from filename and log ---
         fs::path inPath(path);
@@ -296,9 +296,9 @@ int main() {
         logln(oss.str());
 
         // --- Display images (no saving) ---
-        imshow("Original Image", img);
         imshow("CLAHE Transformed Image", clahe_lab);
-        imshow("04_Markers_on_Original", vis);
+        imshow("Sure Foreground", sureFG);
+        imshow("Markers on Original", vis);
 
         // Controls: press ESC/Q to quit, any other key to proceed to next image
         int key = cv::waitKey(0);
