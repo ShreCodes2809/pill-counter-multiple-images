@@ -257,6 +257,9 @@ int main() {
     std::ofstream log("results/run_log.txt", std::ios::app);
     auto logln = [&](const std::string& s){ std::cout << s << '\n'; if (log) log << s << '\n'; };
 
+    double sum_acc = 0.0;   // sum of per-image accuracies (%)
+    int cnt_acc = 0;     // number of images with ground-truth
+
     for (const auto& entry : fs::directory_iterator(imgDir)) {
         if (!entry.is_regular_file()) continue;
         std::string ext = entry.path().extension().string();
@@ -288,6 +291,8 @@ int main() {
             << " | Detected: " << numPills;
         if (actual > 0) {
             double acc = 100.0 * (static_cast<double>(numPills) / actual);
+            sum_acc += acc;
+            cnt_acc += 1;
             oss << " | Actual: " << actual << " | Accuracy: " << std::fixed << std::setprecision(2) << acc << "%";
             if (numPills > actual) oss << " | Note: possible false positives";
         } else {
@@ -305,6 +310,21 @@ int main() {
         if (key == 27 || key == 'q' || key == 'Q') break;
         cv::destroyAllWindows();
     }
+
+    if (cnt_acc > 0) {
+        double avg_acc = sum_acc / cnt_acc;
+        std::ostringstream overall;
+        overall << "Overall average accuracy across " << cnt_acc
+                << " labeled image(s): " << std::fixed << std::setprecision(2)
+                << avg_acc << "%";
+        std::cout << overall.str() << '\n';
+        if (log) log << overall.str() << '\n';
+    } else {
+        std::string msg = "Overall average accuracy: N/A (no labeled images found)";
+        std::cout << msg << '\n';
+        if (log) log << msg << '\n';
+    }
+
 
     logln("Finished displaying all images.");
     return 0;
