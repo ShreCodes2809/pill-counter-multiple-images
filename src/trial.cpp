@@ -172,7 +172,7 @@ static Mat chromaBinForeground(const Mat& bgr)
     Mat dB = (b32 - medB)/sB;
 
     Mat dist;
-    sqrt(0.8*dL.mul(dL) + dA.mul(dA) + dB.mul(dB), dist);
+    sqrt(0.0*dL.mul(dL) + dA.mul(dA) + dB.mul(dB), dist);
     normalize(dist, dist, 0, 255, NORM_MINMAX);
     dist.convertTo(dist, CV_8U);
     Mat bw;
@@ -380,58 +380,90 @@ static int splitByWatershed(const Mat& bgr, const Mat& fgMask, Mat& markersOut, 
 {
     CV_Assert(fgMask.type()==CV_8U && bgr.channels()==3);
 
-    // Light cleanup and hole fill
+    // --- 1) Clean + fill holes → "chroma-based input filled binary mask"
     Mat cleaned;
     morphologyEx(fgMask, cleaned, MORPH_OPEN,
                  getStructuringElement(MORPH_ELLIPSE, Size(3,3)));
     Mat filled = fillHoles(cleaned);
 
-    // Distance transform → seeds
-    Mat dist; distanceTransform(filled, dist, DIST_L2, 5);
+    // Display filled chroma-based FG mask
+    imshow("Step 1 - Filled FG Mask (Chroma)", filled);
+
+    // --- 2) Distance transform → "distance transform visualization"
+    Mat dist;
+    distanceTransform(filled, dist, DIST_L2, 5);
     GaussianBlur(dist, dist, Size(3,3), 0.8);
 
-    double maxv=0; minMaxLoc(dist, nullptr, &maxv);
-    Mat sureFG; threshold(dist, sureFG, 0.35*maxv, 255, THRESH_BINARY); // tune 0.35 if under/over-splitting
+    // Visualize DT as 8-bit image
+    Mat dist_vis;
+    normalize(dist, dist_vis, 0, 255, NORM_MINMAX);
+    dist_vis.convertTo(dist_vis, CV_8U);
+    imshow("Step 2 - Distance Transform", dist_vis);
+
+    // --- 3) DT threshold → seeds → "output sure foreground"
+    double maxv = 0;
+    minMaxLoc(dist, nullptr, &maxv);
+    Mat sureFG;
+    threshold(dist, sureFG, 0.35 * maxv, 255, THRESH_BINARY); // tune 0.35 if needed
     sureFG.convertTo(sureFG, CV_8U);
     morphologyEx(sureFG, sureFG, MORPH_OPEN,
                  getStructuringElement(MORPH_ELLIPSE, Size(3,3)));
 
-    // Connected components → initial markers: 0 unknown, 1 background, >=2 objects
-    Mat markers; int ncc = connectedComponents(sureFG, markers, 8, CV_32S);
+    imshow("Step 3 - Sure Foreground (Seeds)", sureFG);
+
+    // --- 4) Build markers
+    Mat markers;
+    int ncc = connectedComponents(sureFG, markers, 8, CV_32S);
+    (void)ncc; // silence unused warning
     markers += 1; // background becomes 1, objects 2..n
 
-    // Sure background via dilation
     Mat sureBG;
-    dilate(filled, sureBG, getStructuringElement(MORPH_ELLIPSE, Size(5,5)), Point(-1,-1), 2);
+    dilate(filled, sureBG,
+           getStructuringElement(MORPH_ELLIPSE, Size(5,5)),
+           Point(-1,-1), 2);
 
-    // Unknown region → 0 in markers
-    Mat unknown; subtract(sureBG, sureFG, unknown);
+    Mat unknown;
+    subtract(sureBG, sureFG, unknown);
     markers.setTo(0, unknown > 0);
 
-    // Watershed is driven by image gradients; keep it simple on grayscale
-    Mat gray; cvtColor(bgr, gray, COLOR_BGR2GRAY);
-    Mat gx, gy, grad;
-    Sobel(gray, gx, CV_32F, 1, 0, 3);
-    Sobel(gray, gy, CV_32F, 0, 1, 3);
-    magnitude(gx, gy, grad);
-    grad.convertTo(grad, CV_8U);
-
-    // Run watershed
+    // --- 5) Watershed
     watershed(bgr, markers);
 
     // Clean labels: zero outside foreground and on boundaries
     markers.setTo(0, filled == 0);   // outside FG
     markers.setTo(0, markers == -1); // boundaries
 
-    // Count unique labels >=2
-    double mn, mx; minMaxLoc(markers, &mn, &mx);
+    // --- 6) Visualize markers as a label image ("markers")
+    double minv, mx;
+    minMaxLoc(markers, &minv, &mx);
+
+    Mat markersColor(markers.size(), CV_8UC3, Scalar(0,0,0));
+    for (int y = 0; y < markers.rows; ++y) {
+        const int* mptr = markers.ptr<int>(y);
+        Vec3b* cptr = markersColor.ptr<Vec3b>(y);
+        for (int x = 0; x < markers.cols; ++x) {
+            int lbl = mptr[x];
+            if (lbl <= 1) {
+                cptr[x] = Vec3b(0,0,0); // background / unknown
+            } else {
+                // deterministic pseudo-color per label
+                uchar r = (lbl * 50) % 256;
+                uchar g = (lbl * 80) % 256;
+                uchar b = (lbl * 110) % 256;
+                cptr[x] = Vec3b(b,g,r);
+            }
+        }
+    }
+    imshow("Step 4 - Markers (Label Image)", markersColor);
+
+    // --- 7) Count labels
     int num = 0;
     for (int lbl = 2; lbl <= (int)mx; ++lbl) {
         if (countNonZero(markers == lbl) > 0) ++num;
     }
 
     markersOut = markers.clone();
-    sureFGOut = sureFG.clone();
+    sureFGOut  = sureFG.clone();
     return num;
 }
 
@@ -459,21 +491,23 @@ static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img
  */
 {
     
+    // Step A: chroma-based foreground on preprocessed image
     Mat bw = chromaBinForeground(clus_img);
 
+    // Step B: split touching objects using watershed
     Mat markers, sureFG;
     int numPills = splitByWatershed(clus_img, bw, markers, sureFG);
 
+    // Step C: overlay markers on original image
     visOut = img.clone();
     drawMarkersOn(visOut, markers);
 
-    // Optional visualization
-    imshow("SureFG", sureFG);
-    imshow("Markers_on_Original", visOut);
+    // Optional: also show the raw bw if you want
+    imshow("Step 0 - Raw Chroma Foreground", bw);
 
     sureFGOut = sureFG;
 
-    return numPills; // 🔹 return count
+    return numPills;
 }
 
 int main() {
@@ -529,9 +563,8 @@ int main() {
         }
         logln(oss.str());
 
-        // --- Display images (no saving) ---
-        imshow("CLAHE Transformed Image", clahe_lab);
-        imshow("Sure Foreground", sureFG);
+        // --- Display final views for this image ---
+        imshow("Original Image", img);
         imshow("Markers on Original", vis);
 
         // Controls: press ESC/Q to quit, any other key to proceed to next image
