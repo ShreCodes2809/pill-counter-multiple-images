@@ -181,6 +181,108 @@ static Mat chromaBinForeground(const Mat& bgr)
     return bw;
 }
 
+// Heuristic: does this mask show strong "horizontal stripe" splitting
+// inside many foreground components (like the yellow-pill case)?
+static bool hasHorizontalStripeSplits(const Mat& bw)
+{
+    CV_Assert(bw.type() == CV_8U);
+
+    Mat lbl, stats, cent;
+    int ncc = connectedComponentsWithStats(bw, lbl, stats, cent, 8, CV_32S);
+    if (ncc <= 1) return false; // only background
+
+    int componentsChecked = 0;
+    int componentsWithStripe = 0;
+
+    for (int i = 1; i < ncc; ++i) {
+        int area = stats.at<int>(i, CC_STAT_AREA);
+        if (area < 80) continue; // skip tiny junk
+
+        Rect r(stats.at<int>(i, CC_STAT_LEFT),
+               stats.at<int>(i, CC_STAT_TOP),
+               stats.at<int>(i, CC_STAT_WIDTH),
+               stats.at<int>(i, CC_STAT_HEIGHT));
+
+        // ignore very thin or weird shapes
+        if (r.height < 10 || r.width < 10) continue;
+
+        Mat roi = bw(r).clone();
+        int rowsConsidered = 0;
+        int rowsWithSplit  = 0;
+
+        for (int y = 0; y < roi.rows; ++y) {
+            const uchar* row = roi.ptr<uchar>(y);
+
+            // quick check: any FG at all?
+            int fgCount = 0;
+            for (int x = 0; x < roi.cols; ++x)
+                if (row[x]) ++fgCount;
+
+            if (fgCount == 0 || fgCount == roi.cols) continue; // all BG or all FG
+
+            rowsConsidered++;
+
+            // count FG segments in this row
+            int segments = 0;
+            bool inSeg = false;
+            for (int x = 0; x < roi.cols; ++x) {
+                if (row[x]) {
+                    if (!inSeg) {
+                        inSeg = true;
+                        segments++;
+                    }
+                } else {
+                    inSeg = false;
+                }
+            }
+
+            if (segments >= 2) rowsWithSplit++;
+        }
+
+        if (rowsConsidered == 0) continue;
+
+        double frac = (double)rowsWithSplit / (double)rowsConsidered;
+        // "stripe-like" if many rows have 2 separated FG bands
+        if (frac > 0.25) {
+            componentsWithStripe++;
+        }
+        componentsChecked++;
+    }
+
+    if (componentsChecked == 0) return false;
+
+    // If a good fraction of components show stripe splitting → treat as yellow-pill-like
+    double stripeFrac = (double)componentsWithStripe / (double)componentsChecked;
+    return (stripeFrac > 0.3);
+}
+
+static Mat repairPillsByVerticalClose(const Mat& bwIn)
+{
+    CV_Assert(bwIn.type() == CV_8U);
+
+    Mat bw = bwIn.clone();
+
+    // Always do a small open to remove specks
+    Mat seOpen = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
+    morphologyEx(bw, bw, MORPH_OPEN, seOpen);
+
+    bool needVertical = hasHorizontalStripeSplits(bw);
+
+    if (!needVertical) {
+        // Non-stripe images: maybe a mild closing to smooth edges, but nothing aggressive
+        Mat seSmall = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
+        morphologyEx(bw, bw, MORPH_CLOSE, seSmall);
+        return bw;
+    }
+
+    // Stripe case (like yellow pills): aggressive vertical close
+    Mat seVert = getStructuringElement(MORPH_RECT, Size(1,21)); // tune height if needed
+    morphologyEx(bw, bw, MORPH_CLOSE, seVert);
+    morphologyEx(bw, bw, MORPH_OPEN, seOpen); // re-clean
+
+    return bw;
+}
+
 static int distanceAndComponents(const Mat& filled, Mat& dist32f, Mat& sureFG, Mat& markers)
 /**
  * @brief Generates marker regions and seed points for watershed segmentation.
@@ -491,10 +593,13 @@ static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img
  */
 {
     
-    // Step A: chroma-based foreground on preprocessed image
-    Mat bw = chromaBinForeground(clus_img);
+    // Raw chroma mask – IMPORTANT: use original img
+    Mat bwRaw = chromaBinForeground(img);
 
-    // Step B: split touching objects using watershed
+    // Adaptive repair
+    Mat bw = repairPillsByVerticalClose(bwRaw);
+
+    // split touching objects using watershed
     Mat markers, sureFG;
     int numPills = splitByWatershed(clus_img, bw, markers, sureFG);
 
@@ -503,7 +608,8 @@ static int processClusteredAndOverlayMarkers(const Mat& img, const Mat& clus_img
     drawMarkersOn(visOut, markers);
 
     // Optional: also show the raw bw if you want
-    imshow("Step 0 - Raw Chroma Foreground", bw);
+    imshow("Step 0 - Raw Chroma Foreground", bwRaw);
+    imshow("Step 0.5 - Repaired Mask (Adaptive Vertical Close)", bw);
 
     sureFGOut = sureFG;
 
