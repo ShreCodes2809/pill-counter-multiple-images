@@ -150,3 +150,25 @@ File: p3_56.png | Detected: 47 | Actual: 56 | Accuracy: 83.93%
 File: p13_10.jpg | Detected: 9 | Actual: 10 | Accuracy: 90.00%
 Overall average accuracy across 20 labeled image(s): 85.19%
 Finished displaying all images.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 1 | Actual: 52 | Accuracy: 1.92%
+File: p14_13.jpg | Detected: 27 | Actual: 13 | Accuracy: 207.69% | Note: possible false positives
+File: p5_28.jpg | Detected: 21 | Actual: 28 | Accuracy: 75.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 35 | Actual: 37 | Accuracy: 94.59%
+File: p12_10.jpg | Detected: 1 | Actual: 10 | Accuracy: 10.00%
+File: p10_27.jpg | Detected: 26 | Actual: 27 | Accuracy: 96.30%
+File: p4_10.jpg | Detected: 3 | Actual: 10 | Accuracy: 30.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 1 | Actual: 79 | Accuracy: 1.27%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 1 | Actual: 56 | Accuracy: 1.79%
+File: p13_10.jpg | Detected: 8 | Actual: 10 | Accuracy: 80.00%
+Overall average accuracy across 20 labeled image(s): 79.93%
+Finished displaying all images.
