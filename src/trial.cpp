@@ -34,58 +34,6 @@ static double maskedMedian(const cv::Mat& channel, const cv::Mat& mask)
     return vals[vals.size() / 2];
 }
 
-// Build "sure foreground" seeds per connected component,
-// using local distance transforms instead of one global DT.
-// static void buildSeedsPerComponent(const Mat& fgMask,
-//                                    Mat& sure_fg,
-//                                    Mat& dist_vis)
-// {
-//     CV_Assert(fgMask.type() == CV_8U);
-
-//     Mat lbl, stats, centroids;
-//     int ncc = connectedComponentsWithStats(fgMask, lbl, stats, centroids, 8, CV_32S);
-
-//     Mat seeds = Mat::zeros(fgMask.size(), CV_8U);
-//     Mat distAll = Mat::zeros(fgMask.size(), CV_32F);
-
-//     Mat seOpen = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
-
-//     for (int i = 1; i < ncc; ++i) {
-//         int area = stats.at<int>(i, CC_STAT_AREA);
-//         if (area < 50) continue; // ignore junk
-
-//         Mat compMask = (lbl == i);
-
-//         Mat dist;
-//         distanceTransform(compMask, dist, DIST_L2, 3);
-
-//         double maxv = 0.0;
-//         minMaxLoc(dist, nullptr, &maxv, nullptr, nullptr, compMask);
-//         if (maxv < 2.0) continue;
-
-//         // Normalize + smooth to stabilize peaks
-//         normalize(dist, dist, 0.0, 1.0, NORM_MINMAX);
-//         GaussianBlur(dist, dist, Size(5,5), 0);
-
-//         // Local adaptive threshold: one or few seeds per object
-//         // Factor can be tuned; 0.5 is a good starting point.
-//         Mat s;
-//         threshold(dist, s, 0.5, 1.0, THRESH_BINARY);
-//         s.convertTo(s, CV_8U, 255.0);
-
-//         morphologyEx(s, s, MORPH_OPEN, seOpen); // clean noise
-//         seeds |= s;
-
-//         // For visualization of DT, keep the max over all components
-//         max(distAll, dist, distAll);
-//     }
-
-//     sure_fg = seeds;
-
-//     normalize(distAll, dist_vis, 0, 255, NORM_MINMAX);
-//     dist_vis.convertTo(dist_vis, CV_8U);
-// }
-
 static void buildSeedsPerComponent(const Mat& fgMask,
                                    Mat& sure_fg,
                                    Mat& dist_vis)
@@ -293,18 +241,6 @@ int main() {
         // 2) From chroma mask: opening, sure_bg, dist, sure_fg, unknown
         // -------------------------------------------------
         Mat kernel = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
-
-        // Mat opening;
-        // morphologyEx(thresh, opening, MORPH_OPEN, kernel, Point(-1,-1), 2);
-        // imshow("Step 2 - Opening (Chroma Mask Cleaned)", opening);
-
-        // Mat sure_bg;
-        // dilate(opening, sure_bg, kernel, Point(-1,-1), 5);
-        // Mat smoothed;
-        // morphologyEx(opening, smoothed, MORPH_CLOSE,
-        //             getStructuringElement(MORPH_ELLIPSE, Size(7, 7)));
-        // imshow("Step 2.5 - Smoothed Mask before DT", smoothed);
-        // imshow("Step 3 - Sure Background (from Chroma)", sure_bg);
 
         Mat opening;
         morphologyEx(thresh, opening, MORPH_OPEN, kernel, Point(-1,-1), 2);
