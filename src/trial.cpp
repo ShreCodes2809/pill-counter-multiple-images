@@ -36,6 +36,56 @@ static double maskedMedian(const cv::Mat& channel, const cv::Mat& mask)
 
 // Build "sure foreground" seeds per connected component,
 // using local distance transforms instead of one global DT.
+// static void buildSeedsPerComponent(const Mat& fgMask,
+//                                    Mat& sure_fg,
+//                                    Mat& dist_vis)
+// {
+//     CV_Assert(fgMask.type() == CV_8U);
+
+//     Mat lbl, stats, centroids;
+//     int ncc = connectedComponentsWithStats(fgMask, lbl, stats, centroids, 8, CV_32S);
+
+//     Mat seeds = Mat::zeros(fgMask.size(), CV_8U);
+//     Mat distAll = Mat::zeros(fgMask.size(), CV_32F);
+
+//     Mat seOpen = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
+
+//     for (int i = 1; i < ncc; ++i) {
+//         int area = stats.at<int>(i, CC_STAT_AREA);
+//         if (area < 50) continue; // ignore junk
+
+//         Mat compMask = (lbl == i);
+
+//         Mat dist;
+//         distanceTransform(compMask, dist, DIST_L2, 3);
+
+//         double maxv = 0.0;
+//         minMaxLoc(dist, nullptr, &maxv, nullptr, nullptr, compMask);
+//         if (maxv < 2.0) continue;
+
+//         // Normalize + smooth to stabilize peaks
+//         normalize(dist, dist, 0.0, 1.0, NORM_MINMAX);
+//         GaussianBlur(dist, dist, Size(5,5), 0);
+
+//         // Local adaptive threshold: one or few seeds per object
+//         // Factor can be tuned; 0.5 is a good starting point.
+//         Mat s;
+//         threshold(dist, s, 0.5, 1.0, THRESH_BINARY);
+//         s.convertTo(s, CV_8U, 255.0);
+
+//         morphologyEx(s, s, MORPH_OPEN, seOpen); // clean noise
+//         seeds |= s;
+
+//         // For visualization of DT, keep the max over all components
+//         max(distAll, dist, distAll);
+//     }
+
+//     sure_fg = seeds;
+
+//     normalize(distAll, dist_vis, 0, 255, NORM_MINMAX);
+//     dist_vis.convertTo(dist_vis, CV_8U);
+// }
+
 static void buildSeedsPerComponent(const Mat& fgMask,
                                    Mat& sure_fg,
                                    Mat& dist_vis)
@@ -45,17 +95,34 @@ static void buildSeedsPerComponent(const Mat& fgMask,
     Mat lbl, stats, centroids;
     int ncc = connectedComponentsWithStats(fgMask, lbl, stats, centroids, 8, CV_32S);
 
-    Mat seeds = Mat::zeros(fgMask.size(), CV_8U);
+    // --- 1) Collect areas to estimate "typical pill size" ---
+    std::vector<int> areas;
+    areas.reserve(ncc);
+    for (int i = 1; i < ncc; ++i) {
+        int a = stats.at<int>(i, CC_STAT_AREA);
+        if (a >= 50) areas.push_back(a);
+    }
+    if (areas.empty()) {
+        sure_fg = Mat::zeros(fgMask.size(), CV_8U);
+        dist_vis = Mat::zeros(fgMask.size(), CV_8U);
+        return;
+    }
+    std::nth_element(areas.begin(), areas.begin() + areas.size()/2, areas.end());
+    double medArea = areas[areas.size()/2];
+
+    Mat seeds   = Mat::zeros(fgMask.size(), CV_8U);
     Mat distAll = Mat::zeros(fgMask.size(), CV_32F);
 
-    Mat seOpen = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
+    Mat seOpen  = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
+    Mat seClose = getStructuringElement(MORPH_ELLIPSE, Size(5,5));
 
     for (int i = 1; i < ncc; ++i) {
         int area = stats.at<int>(i, CC_STAT_AREA);
-        if (area < 50) continue; // ignore junk
+        if (area < 50) continue;
 
         Mat compMask = (lbl == i);
 
+        // Distance transform for this component
         Mat dist;
         distanceTransform(compMask, dist, DIST_L2, 3);
 
@@ -63,21 +130,42 @@ static void buildSeedsPerComponent(const Mat& fgMask,
         minMaxLoc(dist, nullptr, &maxv, nullptr, nullptr, compMask);
         if (maxv < 2.0) continue;
 
-        // Normalize + smooth to stabilize peaks
-        normalize(dist, dist, 0.0, 1.0, NORM_MINMAX);
-        GaussianBlur(dist, dist, Size(5,5), 0);
+        Mat distNorm;
+        normalize(dist, distNorm, 0.0, 1.0, NORM_MINMAX);
 
-        // Local adaptive threshold: one or few seeds per object
-        // Factor can be tuned; 0.5 is a good starting point.
-        Mat s;
-        threshold(dist, s, 0.5, 1.0, THRESH_BINARY);
-        s.convertTo(s, CV_8U, 255.0);
+        Mat s = Mat::zeros(fgMask.size(), CV_8U);
 
-        morphologyEx(s, s, MORPH_OPEN, seOpen); // clean noise
+        // ----------------------------------------------------
+        // SMALL / ISOLATED COMPONENT: 1 SEED PER COMPONENT
+        // ----------------------------------------------------
+        if (area < 1.8 * medArea) {
+            // take the global maximum of the DT and plant a small disc there
+            Point maxLoc;
+            minMaxLoc(distNorm, nullptr, nullptr, nullptr, &maxLoc, compMask);
+
+            // radius ~ 30% of equivalent radius
+            double eqR = std::sqrt(area / CV_PI);
+            int r = std::max(2, (int)std::round(0.3 * eqR));
+
+            circle(s, maxLoc, r, Scalar(255), FILLED);
+        }
+        // ----------------------------------------------------
+        // LARGE / MERGED COMPONENT: multi-seed from DT
+        // ----------------------------------------------------
+        else {
+            Mat sLocal;
+            threshold(distNorm, sLocal, 0.65, 1.0, THRESH_BINARY);
+            sLocal.convertTo(sLocal, CV_8U, 255.0);
+
+            morphologyEx(sLocal, sLocal, MORPH_OPEN,  seOpen);
+            morphologyEx(sLocal, sLocal, MORPH_CLOSE, seClose);
+
+            // restrict seeds to this component
+            bitwise_and(sLocal, compMask, s);
+        }
+
         seeds |= s;
-
-        // For visualization of DT, keep the max over all components
-        max(distAll, dist, distAll);
+        max(distAll, distNorm, distAll);
     }
 
     sure_fg = seeds;
@@ -259,20 +347,6 @@ int main() {
         Mat sure_bg;
         dilate(fgForDT, sure_bg, kernel, Point(-1,-1), 3);
         imshow("Step 3 - Sure Background (from Chroma)", sure_bg);
-
-        // Mat dist;
-        // distanceTransform(fgForDT, dist, DIST_L2, 5);
-        // Mat dist_vis;
-        // normalize(dist, dist_vis, 0, 255, NORM_MINMAX);
-        // dist_vis.convertTo(dist_vis, CV_8U);
-        // imshow("Step 4 - Distance Transform (Chroma)", dist_vis);
-
-        // double maxv = 0.0;
-        // minMaxLoc(dist, nullptr, &maxv);
-        // Mat sure_fg;
-        // threshold(dist, sure_fg, 0.65 * maxv, 255, THRESH_BINARY);
-        // sure_fg.convertTo(sure_fg, CV_8U);
-        // imshow("Step 5 - Sure Foreground (from Chroma)", sure_fg);
 
         Mat dist_vis, sure_fg;
         buildSeedsPerComponent(fgForDT, sure_fg, dist_vis);
