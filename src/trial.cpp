@@ -272,8 +272,8 @@ int main() {
         Mat fgForDT = thresh.clone();
         if (!isRound) {
             // capsules / elongated -> strong closing to fill gaps
-            morphologyEx(fgForDT, fgForDT, MORPH_CLOSE,
-                        getStructuringElement(MORPH_ELLIPSE, Size(9,9)));
+            morphologyEx(fgForDT, fgForDT, MORPH_OPEN,
+                        getStructuringElement(MORPH_ELLIPSE, Size(3, 3)));
         }
         imshow("Step 2.5 - Smoothed Mask before DT", fgForDT);
 
@@ -291,7 +291,7 @@ int main() {
                 distNorm = dist / float(maxv + 1e-6f);
 
             Mat sure_fg_round;
-            const float alpha = 0.45f;  // OK for true circles
+            const float alpha = 0.65f;  // OK for true circles
             threshold(distNorm, sure_fg_round, alpha, 1.0f, THRESH_BINARY);
             sure_fg_round.convertTo(sure_fg_round, CV_8U, 255.0);
 
@@ -307,13 +307,44 @@ int main() {
             imshow("Step 4 - Distance Transform (round mode)", dist_vis);
             imshow("Step 5 - Sure Foreground (round, DT shrink)", sure_fg);
         } else {
-            // ------- CAPSULE MODE: per-component seeds -------
-            dilate(fgForDT, sure_bg, kernel, Point(-1,-1), 3);
+            // ------- CAPSULE MODE: DT-core seeds (no buildSeedsPerComponent) -------
+
+            // 1) Clean the foreground a bit without merging capsules
+            Mat fgClean = fgForDT.clone();
+            morphologyEx(fgClean, fgClean, MORPH_OPEN,
+                        getStructuringElement(MORPH_ELLIPSE, Size(3,3)));
+
+            // 2) Sure background: light dilation of cleaned FG
+            dilate(fgClean, sure_bg, kernel, Point(-1,-1), 2);
             imshow("Step 3 - Sure Background (capsule, from Chroma)", sure_bg);
 
-            buildSeedsPerComponent(fgForDT, sure_fg, dist_vis);
-            imshow("Step 4 - Distance Transform (capsule, per-component)", dist_vis);
-            imshow("Step 5 - Sure Foreground (capsule, per-component)", sure_fg);
+            // 3) Distance transform on unfused capsules
+            Mat dist;
+            distanceTransform(fgClean, dist, DIST_L2, 3);  // CV_32F
+
+            double maxv = 0.0;
+            minMaxLoc(dist, nullptr, &maxv, nullptr, nullptr);
+            Mat distNorm = Mat::zeros(dist.size(), CV_32F);
+            if (maxv > 0.0)
+                distNorm = dist / float(maxv + 1e-6f);
+
+            // 4) Sure foreground: keep capsule cores via DT threshold
+            Mat sure_fg_caps;
+            const float alpha_caps = 0.35f;  // tune 0.35–0.45 if needed
+            threshold(distNorm, sure_fg_caps, alpha_caps, 1.0f, THRESH_BINARY);
+            sure_fg_caps.convertTo(sure_fg_caps, CV_8U, 255.0);
+
+            // Remove skinny bridges / noise
+            morphologyEx(sure_fg_caps, sure_fg_caps, MORPH_OPEN,
+                        getStructuringElement(MORPH_ELLIPSE, Size(3,3)));
+
+            sure_fg = sure_fg_caps.clone();
+
+            // 5) For visualization
+            normalize(dist, dist_vis, 0, 255, NORM_MINMAX);
+            dist_vis.convertTo(dist_vis, CV_8U);
+            imshow("Step 4 - Distance Transform (capsule, DT mode)", dist_vis);
+            imshow("Step 5 - Sure Foreground (capsule, DT shrink)", sure_fg);
         }
 
         // -------------------------------------------------
