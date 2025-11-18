@@ -237,14 +237,10 @@ int main() {
         imshow("Step 0 - Original", img);
         imshow("Step 1 - Chroma Mask", thresh);
 
-        // -------------------------------------------------
-        // 2) From chroma mask: opening, sure_bg, dist, sure_fg, unknown
+                // -------------------------------------------------
+        // 2) From chroma mask: sure_bg, dist, sure_fg, unknown
         // -------------------------------------------------
         Mat kernel = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
-
-        // Mat opening;
-        // morphologyEx(thresh, opening, MORPH_OPEN, kernel, Point(-1,-1), 2);
-        // imshow("Step 2 - Opening (Chroma Mask Cleaned)", opening);
 
         // Decide whether we actually need the strong closing.
         // Use median aspect ratio of connected components.
@@ -270,25 +266,59 @@ int main() {
             medAR = aspect[aspect.size() / 2];
         }
 
-        // If pills are elongated (capsules), use strong closing.
-        // If they are compact (squares / circles), skip it.
+        // Decide mode: only very round objects use round-mode
+        bool isRound = (medAR < 1.10);   // tighter threshold
+
         Mat fgForDT = thresh.clone();
-        if (medAR > 1.5) {
+        if (!isRound) {
+            // capsules / elongated -> strong closing to fill gaps
             morphologyEx(fgForDT, fgForDT, MORPH_CLOSE,
                         getStructuringElement(MORPH_ELLIPSE, Size(9,9)));
         }
         imshow("Step 2.5 - Smoothed Mask before DT", fgForDT);
 
-        // 2.4 Sure background from *smoothed* FG
-        Mat sure_bg;
-        dilate(fgForDT, sure_bg, kernel, Point(-1,-1), 3);
-        imshow("Step 3 - Sure Background (from Chroma)", sure_bg);
+        Mat sure_bg, sure_fg, dist_vis;
 
-        Mat dist_vis, sure_fg;
-        buildSeedsPerComponent(fgForDT, sure_fg, dist_vis);
-        imshow("Step 4 - Distance Transform (Chroma, per-component)", dist_vis);
-        imshow("Step 5 - Sure Foreground (from Chroma, per-component)", sure_fg);
+        if (isRound) {
+            // ------- ROUND MODE: DT shrink, as before -------
+            Mat dist;
+            distanceTransform(fgForDT, dist, DIST_L2, 3);
 
+            double maxv = 0.0;
+            minMaxLoc(dist, nullptr, &maxv, nullptr, nullptr);
+            Mat distNorm = Mat::zeros(dist.size(), CV_32F);
+            if (maxv > 0.0)
+                distNorm = dist / float(maxv + 1e-6f);
+
+            Mat sure_fg_round;
+            const float alpha = 0.45f;  // OK for true circles
+            threshold(distNorm, sure_fg_round, alpha, 1.0f, THRESH_BINARY);
+            sure_fg_round.convertTo(sure_fg_round, CV_8U, 255.0);
+
+            morphologyEx(sure_fg_round, sure_fg_round, MORPH_OPEN, kernel);
+
+            sure_fg = sure_fg_round.clone();
+            dilate(fgForDT, sure_bg, kernel, Point(-1,-1), 3);
+
+            normalize(dist, dist_vis, 0, 255, NORM_MINMAX);
+            dist_vis.convertTo(dist_vis, CV_8U);
+
+            imshow("Step 3 - Sure Background (round, from Chroma)", sure_bg);
+            imshow("Step 4 - Distance Transform (round mode)", dist_vis);
+            imshow("Step 5 - Sure Foreground (round, DT shrink)", sure_fg);
+        } else {
+            // ------- CAPSULE MODE: per-component seeds -------
+            dilate(fgForDT, sure_bg, kernel, Point(-1,-1), 3);
+            imshow("Step 3 - Sure Background (capsule, from Chroma)", sure_bg);
+
+            buildSeedsPerComponent(fgForDT, sure_fg, dist_vis);
+            imshow("Step 4 - Distance Transform (capsule, per-component)", dist_vis);
+            imshow("Step 5 - Sure Foreground (capsule, per-component)", sure_fg);
+        }
+
+        // -------------------------------------------------
+        // 2.c Unknown region
+        // -------------------------------------------------
         Mat unknown;
         subtract(sure_bg, sure_fg, unknown);
         imshow("Step 6 - Unknown Region", unknown);
