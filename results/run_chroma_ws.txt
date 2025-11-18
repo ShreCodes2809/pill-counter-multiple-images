@@ -1,0 +1,418 @@
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 30 | Actual: 28 | Accuracy: 107.14% | Note: possible over-count
+File: p7_12.png | Detected: 19 | Actual: 12 | Accuracy: 158.33% | Note: possible over-count
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 40 | Actual: 37 | Accuracy: 108.11% | Note: possible over-count
+File: p12_10.jpg | Detected: 9 | Actual: 10 | Accuracy: 90.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+File: p1_32.jpg | Detected: 28 | Actual: 32 | Accuracy: 87.50%
+File: p18_79.png | Detected: 70 | Actual: 79 | Accuracy: 88.61%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 20 | Actual: 19 | Accuracy: 105.26% | Note: possible over-count
+File: p19_88.png | Detected: 86 | Actual: 88 | Accuracy: 97.73%
+File: p20_22.jpg | Detected: 25 | Actual: 22 | Accuracy: 113.64% | Note: possible over-count
+File: p8_108.jpg | Detected: 109 | Actual: 108 | Accuracy: 100.93% | Note: possible over-count
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 11 | Actual: 10 | Accuracy: 110.00% | Note: possible over-count
+Overall average accuracy across 20 labeled image(s): 103.36%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 50 | Actual: 52 | Accuracy: 96.15%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 3 | Actual: 10 | Accuracy: 30.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 1 | Actual: 10 | Accuracy: 10.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 18 | Actual: 79 | Accuracy: 22.78%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 1 | Actual: 56 | Accuracy: 1.79%
+File: p13_10.jpg | Detected: 14 | Actual: 10 | Accuracy: 140.00% | Note: possible over-count
+Overall average accuracy across 20 labeled image(s): 85.04%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 40 | Actual: 37 | Accuracy: 108.11% | Note: possible over-count
+File: p12_10.jpg | Detected: 8 | Actual: 10 | Accuracy: 80.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 8 | Actual: 10 | Accuracy: 80.00%
+File: p1_32.jpg | Detected: 33 | Actual: 32 | Accuracy: 103.12% | Note: possible over-count
+File: p18_79.png | Detected: 37 | Actual: 79 | Accuracy: 46.84%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 41 | Actual: 19 | Accuracy: 215.79% | Note: possible over-count
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 101.69%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 40 | Actual: 37 | Accuracy: 108.11% | Note: possible over-count
+File: p12_10.jpg | Detected: 8 | Actual: 10 | Accuracy: 80.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 8 | Actual: 10 | Accuracy: 80.00%
+File: p1_32.jpg | Detected: 33 | Actual: 32 | Accuracy: 103.12% | Note: possible over-count
+File: p18_79.png | Detected: 37 | Actual: 79 | Accuracy: 46.84%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 41 | Actual: 19 | Accuracy: 215.79% | Note: possible over-count
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 101.69%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 40 | Actual: 37 | Accuracy: 108.11% | Note: possible over-count
+File: p12_10.jpg | Detected: 8 | Actual: 10 | Accuracy: 80.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 8 | Actual: 10 | Accuracy: 80.00%
+File: p1_32.jpg | Detected: 33 | Actual: 32 | Accuracy: 103.12% | Note: possible over-count
+File: p18_79.png | Detected: 37 | Actual: 79 | Accuracy: 46.84%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 41 | Actual: 19 | Accuracy: 215.79% | Note: possible over-count
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 101.69%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 40 | Actual: 37 | Accuracy: 108.11% | Note: possible over-count
+File: p12_10.jpg | Detected: 9 | Actual: 10 | Accuracy: 90.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 19 | Actual: 79 | Accuracy: 24.05%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 43 | Actual: 19 | Accuracy: 226.32% | Note: possible over-count
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 26 | Actual: 22 | Accuracy: 118.18% | Note: possible over-count
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 103.33%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 4 | Actual: 10 | Accuracy: 40.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 2 | Actual: 10 | Accuracy: 20.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 18 | Actual: 79 | Accuracy: 22.78%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 89.14%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 31 | Actual: 28 | Accuracy: 110.71% | Note: possible over-count
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 4 | Actual: 10 | Accuracy: 40.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 2 | Actual: 10 | Accuracy: 20.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 4 | Actual: 79 | Accuracy: 5.06%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 40 | Actual: 56 | Accuracy: 71.43%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 87.36%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 4 | Actual: 10 | Accuracy: 40.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 2 | Actual: 10 | Accuracy: 20.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 18 | Actual: 79 | Accuracy: 22.78%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 89.14%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 4 | Actual: 10 | Accuracy: 40.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 2 | Actual: 10 | Accuracy: 20.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 60 | Actual: 79 | Accuracy: 75.95%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 91.80%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 4 | Actual: 10 | Accuracy: 40.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 2 | Actual: 10 | Accuracy: 20.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 60 | Actual: 79 | Accuracy: 75.95%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 91.80%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 4 | Actual: 10 | Accuracy: 40.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 2 | Actual: 10 | Accuracy: 20.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 60 | Actual: 79 | Accuracy: 75.95%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 91.80%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 31 | Actual: 28 | Accuracy: 110.71% | Note: possible over-count
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 4 | Actual: 10 | Accuracy: 40.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 2 | Actual: 10 | Accuracy: 20.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 9 | Actual: 79 | Accuracy: 11.39%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 41 | Actual: 56 | Accuracy: 73.21%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 87.77%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 4 | Actual: 10 | Accuracy: 40.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 2 | Actual: 10 | Accuracy: 20.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 60 | Actual: 79 | Accuracy: 75.95%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 91.80%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 24 | Actual: 28 | Accuracy: 85.71%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 6 | Actual: 10 | Accuracy: 60.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 6 | Actual: 10 | Accuracy: 60.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 17 | Actual: 79 | Accuracy: 21.52%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 91.36%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 24 | Actual: 28 | Accuracy: 85.71%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 6 | Actual: 10 | Accuracy: 60.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 6 | Actual: 10 | Accuracy: 60.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p18_79.png | Detected: 17 | Actual: 79 | Accuracy: 21.52%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 91.36%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 24 | Actual: 28 | Accuracy: 85.71%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 6 | Actual: 10 | Accuracy: 60.00%
+File: p18_64.png | Detected: 64 | Actual: 64 | Accuracy: 100.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 6 | Actual: 10 | Accuracy: 60.00%
+File: p1_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 19 | Actual: 19 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+Overall average accuracy across 20 labeled image(s): 95.29%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 8 | Actual: 10 | Accuracy: 80.00%
+File: p18_64.png | Detected: 64 | Actual: 64 | Accuracy: 100.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+File: p1_32.jpg | Detected: 27 | Actual: 32 | Accuracy: 84.38%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p9_19.jpg | Detected: 47 | Actual: 19 | Accuracy: 247.37% | Note: possible over-count
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 9 | Actual: 10 | Accuracy: 90.00%
+Overall average accuracy across 20 labeled image(s): 105.09%
+Finished chroma+gradient watershed run.
+File: p15_55.png | Detected: 55 | Actual: 55 | Accuracy: 100.00%
+File: p17_52.jpg | Detected: 52 | Actual: 52 | Accuracy: 100.00%
+File: p14_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p5_28.jpg | Detected: 28 | Actual: 28 | Accuracy: 100.00%
+File: p7_12.png | Detected: 12 | Actual: 12 | Accuracy: 100.00%
+File: p16_15.jpg | Detected: 15 | Actual: 15 | Accuracy: 100.00%
+File: p6_37.jpg | Detected: 37 | Actual: 37 | Accuracy: 100.00%
+File: p12_10.jpg | Detected: 8 | Actual: 10 | Accuracy: 80.00%
+File: p18_64.png | Detected: 64 | Actual: 64 | Accuracy: 100.00%
+File: p10_27.jpg | Detected: 27 | Actual: 27 | Accuracy: 100.00%
+File: p4_10.jpg | Detected: 10 | Actual: 10 | Accuracy: 100.00%
+File: p1_32.jpg | Detected: 27 | Actual: 32 | Accuracy: 84.38%
+File: p11_76.jpg | Detected: 76 | Actual: 76 | Accuracy: 100.00%
+File: p9_32.jpg | Detected: 32 | Actual: 32 | Accuracy: 100.00%
+File: p2_13.jpg | Detected: 13 | Actual: 13 | Accuracy: 100.00%
+File: p19_88.png | Detected: 88 | Actual: 88 | Accuracy: 100.00%
+File: p20_22.jpg | Detected: 22 | Actual: 22 | Accuracy: 100.00%
+File: p8_108.jpg | Detected: 108 | Actual: 108 | Accuracy: 100.00%
+File: p3_56.png | Detected: 56 | Actual: 56 | Accuracy: 100.00%
+File: p13_10.jpg | Detected: 9 | Actual: 10 | Accuracy: 90.00%
+Overall average accuracy across 20 labeled image(s): 97.72%
+Finished chroma+gradient watershed run.
