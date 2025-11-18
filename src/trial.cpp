@@ -242,14 +242,14 @@ int main() {
         // -------------------------------------------------
         Mat kernel = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
 
-        Mat opening;
-        morphologyEx(thresh, opening, MORPH_OPEN, kernel, Point(-1,-1), 2);
-        imshow("Step 2 - Opening (Chroma Mask Cleaned)", opening);
+        // Mat opening;
+        // morphologyEx(thresh, opening, MORPH_OPEN, kernel, Point(-1,-1), 2);
+        // imshow("Step 2 - Opening (Chroma Mask Cleaned)", opening);
 
         // Decide whether we actually need the strong closing.
         // Use median aspect ratio of connected components.
         Mat lblAR, statsAR, centAR;
-        int nccAR = connectedComponentsWithStats(opening, lblAR, statsAR, centAR, 8, CV_32S);
+        int nccAR = connectedComponentsWithStats(thresh, lblAR, statsAR, centAR, 8, CV_32S);
 
         std::vector<double> aspect;
         aspect.reserve(std::max(0, nccAR - 1));
@@ -272,7 +272,7 @@ int main() {
 
         // If pills are elongated (capsules), use strong closing.
         // If they are compact (squares / circles), skip it.
-        Mat fgForDT = opening.clone();
+        Mat fgForDT = thresh.clone();
         if (medAR > 1.5) {
             morphologyEx(fgForDT, fgForDT, MORPH_CLOSE,
                         getStructuringElement(MORPH_ELLIPSE, Size(9,9)));
