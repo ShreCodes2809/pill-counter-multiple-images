@@ -9,8 +9,8 @@ using namespace cv;
 using namespace std;
 namespace fs = std::filesystem;
 
-// Compute the median of a channel over a masked region.
-// Used to estimate background chroma statistics robustly.
+// Computes the middle (median) color value within a selected region of the image.
+// This helps estimate what the background color looks like so pills can be separated from it.
 static double maskedMedian(const cv::Mat& channel, const cv::Mat& mask)
 {
     CV_Assert(channel.type() == CV_32F);
@@ -34,6 +34,8 @@ static double maskedMedian(const cv::Mat& channel, const cv::Mat& mask)
     return vals[vals.size() / 2];
 }
 
+// Identifies individual connected blobs and finds a small marker point inside each one.
+// These markers help the watershed algorithm understand how many objects are present.
 static void buildSeedsPerComponent(const Mat& fgMask,
                                    Mat& sure_fg,
                                    Mat& dist_vis)
@@ -129,6 +131,8 @@ static void buildSeedsPerComponent(const Mat& fgMask,
 //   3. Compute per-pixel chroma distance from that background median.
 //   4. Normalize + Otsu threshold → binary mask.
 //   5. Morphological closing to smooth edges and fill small gaps.
+// Converts the image into a color space where pill color stands out from the background.
+// Measures how different each pixel’s color is from the background to create a clean pill mask.
 static cv::Mat chromaBinForeground(const cv::Mat& bgr)
 {
     CV_Assert(bgr.channels() == 3);
@@ -183,6 +187,8 @@ static cv::Mat chromaBinForeground(const cv::Mat& bgr)
 }
 
 // ---------- Helper: count objects from watershed markers ----------
+// Counts how many unique labeled regions the watershed algorithm produced.
+// Each label corresponds to one pill detected.
 static int countObjectsFromMarkers(const Mat& markers) {
     CV_Assert(markers.type() == CV_32S);
     double minv, maxv;
@@ -196,6 +202,9 @@ static int countObjectsFromMarkers(const Mat& markers) {
     return count;
 }
 
+// Loads all pill images, extracts pill regions using color, separates them using shape-based methods,
+// then applies watershed to count the number of pills.  
+// Finally logs accuracy for each image and the overall performance.
 int main() {
     fs::path imgDir = "images";
     if (!fs::exists(imgDir) || !fs::is_directory(imgDir)) {
